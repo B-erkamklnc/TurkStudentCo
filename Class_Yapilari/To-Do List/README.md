@@ -36,7 +36,3 @@ Bu Python uygulaması, kullanıcılara basit bir yapılacaklar listesi oluşturu
   Görev Adı|Durum (True/False)
   ```
 
-## Lisans
-Bu proje MIT Lisansı altında sunulmaktadır.
-
-
