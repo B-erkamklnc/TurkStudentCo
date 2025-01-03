@@ -1,6 +1,6 @@
-# Market Yönetim Sistemi
+# Sepet Uygulaması
 
-Bu Python programı, Tkinter kütüphanesi kullanılarak geliştirilmiş bir Market Yönetim Sistemi'ni temsil eder. Program, kullanıcıların ürünleri eklemesini, silmesini ve mevcut ürünleri görüntülemesini sağlar. Ürünler, `product.txt` adlı bir dosyada saklanır.
+Bu Python programı, Tkinter kütüphanesi kullanılarak geliştirilmiş Sepet Uygulaması'nı temsil eder. Program, kullanıcıların ürünleri eklemesini, silmesini ve mevcut ürünleri görüntülemesini sağlar. Ürünler, `product.txt` adlı bir dosyada saklanır.
 
 ## Özellikler
 - Yeni ürün ekleyebilme
