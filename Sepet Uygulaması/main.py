@@ -1,153 +1,190 @@
 import tkinter as tk
-from tkinter import messagebox
-import os
+from tkinter import ttk, messagebox
 
-class Market:
-    def __init__(self):
-        self.file_name = "product.txt"
-        if not os.path.exists(self.file_name):
-            with open(self.file_name, 'w') as file:
-                pass
-
-    def __del__(self):
-        pass  # Dosya işlemleri anlık yapıldığı için burada kapatma işlemi gerekmez
-
-    def list_products(self):
-        with open(self.file_name, 'r') as file:
-            return [line.strip().split(',') for line in file.readlines()]
-
-    def add_product(self, name, category, price, stock):
-        with open(self.file_name, 'a') as file:
-            file.write(f"{name},{category},{price},{stock}\n")
-
-    def delete_product(self, name):
-        products = self.list_products()
-        products = [product for product in products if product[0] != name]
-        with open(self.file_name, 'w') as file:
-            for product in products:
-                file.write(','.join(product) + "\n")
-
-class MarketApp:
-    def __init__(self, root):
-        self.market = Market()
-        self.cart = {}
-
-        self.root = root
-        self.root.title("Çevrimiçi Market Alışveriş Sepeti")
-
-        self.main_frame = tk.Frame(root)
-        self.main_frame.pack(pady=20)
-
-        self.product_list = tk.Listbox(self.main_frame, width=50, height=15)
-        self.product_list.pack(side=tk.LEFT, padx=10)
-
-        self.scrollbar = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+# Yeni ürün eklemek için sınıf
+class AddProductDialog:
+    def __init__(self, parent):
+        # Modal pencere oluştur
+        self.window = tk.Toplevel(parent)
+        self.window.title("Yeni Ürün Ekle")
+        self.window.grab_set()  # Diğer pencereleri bloke et
         
-        self.product_list.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.product_list.yview)
+        # Pencere boyutu ve konumu
+        window_width = 300
+        window_height = 200
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        # Arayüz elemanlarını oluştur
+        self.create_widgets()
+        
+    def create_widgets(self):
+        # Form alanları
+        labels = ['Ürün Adı:', 'Kategori:', 'Fiyat:', 'Stok:']
+        self.entries = {}
+        
+        for i, label in enumerate(labels):
+            tk.Label(self.window, text=label).grid(row=i, column=0, padx=5, pady=5, sticky="e")
+            entry = tk.Entry(self.window)
+            entry.grid(row=i, column=1, padx=5, pady=5, sticky="ew")
+            self.entries[label] = entry
+        
+        # Butonlar
+        button_frame = tk.Frame(self.window)
+        button_frame.grid(row=len(labels), column=0, columnspan=2, pady=10)
+        
+        tk.Button(button_frame, text="Kaydet", command=self.save).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="İptal", command=self.cancel).pack(side=tk.LEFT, padx=5)
+        
+        # Grid yapılandırması
+        self.window.columnconfigure(1, weight=1)
+        
+    def save(self):
+        # Kullanıcıdan alınan bilgileri kaydet
+        self.result = {
+            'name': self.entries['Ürün Adı:'].get(),
+            'category': self.entries['Kategori:'].get(),
+            'price': self.entries['Fiyat:'].get(),
+            'stock': self.entries['Stok:'].get()
+        }
+        self.window.destroy()
+        
+    def cancel(self):
+        # İptal durumunda sonucu None yap
+        self.result = None
+        self.window.destroy()
 
+# GUI sınıfı
+class MarketGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Market Yönetim Sistemi")
+        
+        # Ana pencere boyutu ve konumu
+        window_width = 800
+        window_height = 600
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        # Arayüz elemanlarını oluştur
+        self.create_widgets()
         self.load_products()
-
-        self.control_frame = tk.Frame(root)
-        self.control_frame.pack(pady=20)
-
-        self.add_button = tk.Button(self.control_frame, text="Ürün Ekle", command=self.open_add_product_window)
-        self.add_button.grid(row=0, column=0, padx=10)
-
-        self.delete_button = tk.Button(self.control_frame, text="Ürün Sil", command=self.delete_selected_product)
-        self.delete_button.grid(row=0, column=1, padx=10)
-
-        self.add_to_cart_button = tk.Button(self.control_frame, text="Sepete Ekle", command=self.add_to_cart)
-        self.add_to_cart_button.grid(row=0, column=2, padx=10)
-
-        self.cart_label = tk.Label(root, text="Sepet Toplamı: 0 TL")
-        self.cart_label.pack(pady=10)
-
+        
+    def create_widgets(self):
+        # Tablo
+        columns = ('id', 'name', 'category', 'price', 'stock')
+        self.tree = ttk.Treeview(self.root, columns=columns, show='headings')
+        
+        # Başlıklar
+        self.tree.heading('id', text='ID')
+        self.tree.heading('name', text='Ürün Adı')
+        self.tree.heading('category', text='Kategori')
+        self.tree.heading('price', text='Fiyat')
+        self.tree.heading('stock', text='Stok')
+        
+        # Sütun genişlikleri
+        self.tree.column('id', width=50)
+        self.tree.column('name', width=200)
+        self.tree.column('category', width=150)
+        self.tree.column('price', width=100)
+        self.tree.column('stock', width=100)
+        
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(self.root, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        
+        # Butonlar
+        button_frame = tk.Frame(self.root)
+        ttk.Button(button_frame, text="Ürün Ekle", command=self.add_product).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Ürün Sil", command=self.delete_product).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Yenile", command=self.load_products).pack(side=tk.LEFT, padx=5)
+        
+        # Layout
+        button_frame.pack(pady=10)
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 0), pady=(0, 10))
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=(0, 10), padx=(0, 10))
+        
     def load_products(self):
-        self.product_list.delete(0, tk.END)
-        products = self.market.list_products()
-        for product in products:
-            self.product_list.insert(tk.END, f"{product[0]} - {product[1]} - {product[2]} TL - Stok: {product[3]}")
-
-    def open_add_product_window(self):
-        def save_product():
-            name = name_entry.get()
-            category = category_entry.get()
-            price = price_entry.get()
-            stock = stock_entry.get()
-
-            if not all([name, category, price, stock]):
-                messagebox.showerror("Hata", "Tüm alanları doldurmalısınız!")
-                return
-
+        # Mevcut ürünleri temizle
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        try:
+            with open("product.txt", "r", encoding="utf-8") as file:
+                for i, line in enumerate(file, 1):
+                    name, category, price, stock = line.strip().split(",")
+                    self.tree.insert('', tk.END, values=(i, name, category, f"{float(price):.2f}", stock))
+        except FileNotFoundError:
+            # Dosya yoksa oluştur
+            with open("product.txt", "w", encoding="utf-8") as file:
+                pass
+        except Exception as e:
+            messagebox.showerror("Hata", f"Ürünler yüklenirken hata oluştu: {e}")
+            
+    def add_product(self):
+        dialog = AddProductDialog(self.root)
+        self.root.wait_window(dialog.window)
+        
+        if hasattr(dialog, 'result') and dialog.result:
             try:
-                float(price)
-                int(stock)
-            except ValueError:
-                messagebox.showerror("Hata", "Fiyat ve stok uygun formatta olmalıdır!")
-                return
-
-            self.market.add_product(name, category, price, stock)
-            self.load_products()
-            add_product_window.destroy()
-
-        add_product_window = tk.Toplevel(self.root)
-        add_product_window.title("Yeni Ürün Ekle")
-
-        tk.Label(add_product_window, text="Ürün Adı").grid(row=0, column=0, pady=5)
-        tk.Label(add_product_window, text="Kategori").grid(row=1, column=0, pady=5)
-        tk.Label(add_product_window, text="Fiyat").grid(row=2, column=0, pady=5)
-        tk.Label(add_product_window, text="Stok").grid(row=3, column=0, pady=5)
-
-        name_entry = tk.Entry(add_product_window)
-        category_entry = tk.Entry(add_product_window)
-        price_entry = tk.Entry(add_product_window)
-        stock_entry = tk.Entry(add_product_window)
-
-        name_entry.grid(row=0, column=1, pady=5)
-        category_entry.grid(row=1, column=1, pady=5)
-        price_entry.grid(row=2, column=1, pady=5)
-        stock_entry.grid(row=3, column=1, pady=5)
-
-        tk.Button(add_product_window, text="Kaydet", command=save_product).grid(row=4, column=0, columnspan=2, pady=10)
-
-    def delete_selected_product(self):
-        selected = self.product_list.curselection()
-        if not selected:
-            messagebox.showerror("Hata", "Silmek için bir ürün seçmelisiniz!")
+                # Veri doğrulama
+                price = float(dialog.result['price'])
+                stock = int(dialog.result['stock'])
+                
+                if not dialog.result['name'] or not dialog.result['category']:
+                    raise ValueError("Ürün adı ve kategori boş olamaz!")
+                
+                # Ürünü dosyaya ekle
+                with open("product.txt", "a", encoding="utf-8") as file:
+                    file.write(f"{dialog.result['name']},{dialog.result['category']},{price},{stock}\n")
+                
+                self.load_products()
+                messagebox.showinfo("Başarılı", "Ürün başarıyla eklendi.")
+                
+            except ValueError as e:
+                messagebox.showwarning("Hata", str(e))
+            except Exception as e:
+                messagebox.showerror("Hata", f"Ürün eklenirken hata oluştu: {e}")
+                
+    def delete_product(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Uyarı", "Lütfen silinecek ürünü seçin!")
             return
+            
+        if messagebox.askyesno("Onay", "Bu ürünü silmek istediğinizden emin misiniz?"):
+            try:
+                with open("product.txt", "r", encoding="utf-8") as file:
+                    lines = file.readlines()
+                
+                # Seçili ürünün indeksini bul ve sil
+                index = self.tree.index(selected_item)
+                lines.pop(index)
+                
+                with open("product.txt", "w", encoding="utf-8") as file:
+                    file.writelines(lines)
+                
+                self.load_products()
+                messagebox.showinfo("Başarılı", "Ürün başarıyla silindi.")
+                
+            except Exception as e:
+                messagebox.showerror("Hata", f"Ürün silinirken hata oluştu: {e}")
+                
+    def __del__(self):
+        """ 'product.txt', 'with' ile açıldığı için otomatik olarak kapatılacaktır"""
+        print("Program kapatıldı!")
 
-        product_info = self.product_list.get(selected[0])
-        product_name = product_info.split(' - ')[0]
 
-        self.market.delete_product(product_name)
-        self.load_products()
-
-    def add_to_cart(self):
-        selected = self.product_list.curselection()
-        if not selected:
-            messagebox.showerror("Hata", "Sepete eklemek için bir ürün seçmelisiniz!")
-            return
-
-        product_info = self.product_list.get(selected[0])
-        product_name, _, price, stock_info = product_info.split(' - ')
-        stock = int(stock_info.split(': ')[1])
-        price = float(price.split(' ')[0])
-
-        if product_name not in self.cart:
-            self.cart[product_name] = {'adet': 1, 'fiyat': price}
-        else:
-            if self.cart[product_name]['adet'] < stock:
-                self.cart[product_name]['adet'] += 1
-            else:
-                messagebox.showerror("Hata", "Yeterli stok yok!")
-                return
-
-        total = sum(item['adet'] * item['fiyat'] for item in self.cart.values())
-        self.cart_label.config(text=f"Sepet Toplamı: {total:.2f} TL")
+def main():
+    root = tk.Tk()
+    app = MarketGUI(root)
+    root.mainloop()
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = MarketApp(root)
-    root.mainloop()
+    main()
