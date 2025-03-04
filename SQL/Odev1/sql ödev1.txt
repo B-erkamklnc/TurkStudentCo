@@ -1,0 +1,30 @@
+A.
+	SELECT FirstName, LastName, Salary FROM Employees;
+
+	From ile hangi tabloda işlem yapacağımızı seçtik. 
+	Select ile görmek istediğimiz kolonları seçtik.
+
+
+B.
+	SELECT DISTINCT DepartmentID FROM Employees;
+	Distinct ile Employees tablosundaki DepartmentID'leri tekrar etmeden gelmesini sağladık.
+
+	SELECT * FROM Departments;
+	ID'lerin diğer tablodan karşılık gelen departmanlarını öğrenebiliriz.
+	
+	
+C.
+	SELECT * FROM Employees WHERE DepartmentID = 1;
+	WHERE ile DepartmentID'si 1'2 eşit olan satılar filtrelendi. 
+
+
+D.
+	SELECT * FROM Employees ORDER BY Salary, FirstName;
+	ORDER BY ile önce Salary sonra FirstName kolonuna göre azalan bir sıralama elde ettik.
+	Burada FirstName olmasa da olurdu fakat büyük kayıtlarda kesinlikle işleri kolaylaştır.
+
+
+E.
+	SELECT  LastName || ' ' || FirstName as Name FROM Employees;
+	|| operatörü ile kolonları arasındaki bir boşluk kalacak şekilde birleştirdik.
+	as komutu ile oluşan yeni kolona isim verdik.
