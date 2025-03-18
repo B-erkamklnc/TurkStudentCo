@@ -1,0 +1,43 @@
+1.	SELECT * 
+	FROM invoice
+	WHERE customer_id IS NULL 
+	  	OR invoice_date IS NULL 
+	  	OR billing_address IS NULL 
+	  	OR billing_city IS NULL 
+	  	OR billing_state IS NULL
+	  	OR billing_country IS NULL
+	  	OR billingpostal_code IS NULL
+	  	OR total IS NULL;
+
+	  	--Total rows: 209
+	
+
+	WHERE ile null değer dönen hücrelerin kayıtlarını filtreledik.
+
+
+
+2.	SELECT *, 
+		Total * 2 AS New_Total
+    		 
+	FROM TableName 
+	ORDER BY New_Total DESC;
+
+
+	Total değerinin 2 katına eşit olan yeni bir kolon oluşturup mevcut 
+	sorguyu bu yeni kolonu büyükten küçüğe sıralayacak şekilde ayarladık.
+
+
+
+3.	SELECT 
+    
+    		LEFT(billing_address, 3) || RIGHT(billing_address, 4) AS "Açık Adres"
+    
+	FROM invoice
+	WHERE TO_CHAR(invoice_date, 'YYYY-MM') = '2013-08'
+	ORDER BY invoice_date ASC;
+
+
+	LEFT ile soldan sağa ilk 3 karakteri aldık. RIGHT ile Sağdan sola ilk 4 karakteri aldık.
+	Ardından || operatörü ile ikisini birleştirdik. TO_CHAR ile tarihleri yıl ve ay hassasiyetinde
+	yeniden tanımlayarak belirtilen tarihteki kayıtları filtreledik. ORDER_BY ile de tarih kolonuna göre
+	artan sırada (ASC) sonuçları sıraladık.
