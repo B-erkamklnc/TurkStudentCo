@@ -1,0 +1,52 @@
+1.	SELECT SUM(total) AS sum_total
+	FROM invoice
+	WHERE billing_country = 'USA' 
+		AND DATE_PART('year', invoice_date) = 2009;
+		-- AND EXTRACT(YEAR FROM invoice_date) = 2009; 
+
+
+	WHERE ile billing_country kolonundaki 'USA' değerlerini ve DATE_PART (ya da EXTRACT) 
+	ile de invoice_date kolonundaki 2009 yılına eşit olan kayıtları formatladık.
+
+
+
+2.	SELECT 
+    		t.track_id, 
+    		t.name AS track_name, 
+    		t.album_id, 
+    		t.mediatype_id, 
+    		t.genre_id, 
+    		t.composer, 
+    		t.milliseconds, 
+    		t.bytes, 
+    		t.unitprice, 
+    		pt.playlist_id, 
+    		p.name AS playlist_name
+	FROM track t
+	JOIN playlisttrack pt ON t.track_id = pt.track_id
+	JOIN playlist p ON pt.playlist_id = p.playlist_id;
+
+
+	JOIN işlemleri ile track_id üzerinden playlisttrack tablosuna bağlandık, 
+	ardından playlist_id kullanarak playlist tablosuna bağlandık.
+
+
+3.	SELECT 
+    		t.track_id, 
+    		t.name AS track_name, 
+    		t.milliseconds, 
+    		a.album_id, 
+    		a.title AS album_title, 
+    		ar.artist_id, 
+    		ar.name AS artist_name
+	FROM track t
+	JOIN album a ON t.album_id = a.album_id
+	JOIN artist ar ON a.artist_id = ar.artist_id
+	WHERE a.title = 'Let There Be Rock'
+	ORDER BY t.milliseconds DESC;
+
+	
+	JOIN işlemleri ile album_id üzerinden album tablosuna bağlandık,
+	ardından artist_id kullanarak artist tablosuna bağlandık.
+	WHERE ile Sadece belirtilen albüme ait parçaları seçtik.
+	ORDER BY ile parçaları süresine göre büyükten küçüğe sıraladık.
